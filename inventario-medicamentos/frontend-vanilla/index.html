@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Inventario Medicamentos - Demo</title>
+  <style>
+    body{font-family:system-ui,Arial;margin:24px;max-width:900px}
+    input,button{padding:10px;margin:6px 0}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin-top:16px}
+    pre{background:#f6f6f6;padding:12px;border-radius:12px;overflow:auto}
+  </style>
+</head>
+<body>
+  <h1>Inventario de Medicamentos (Demo)</h1>
+
+  <div class="card">
+    <h2>Login</h2>
+    <div class="row">
+      <div>
+        <label>Usuario</label><br/>
+        <input id="u" value="admin" />
+      </div>
+      <div>
+        <label>Password</label><br/>
+        <input id="p" value="admin123" type="password" />
+      </div>
+    </div>
+    <button id="btnLogin">Ingresar</button>
+    <p id="status"></p>
+  </div>
+
+  <div class="card">
+    <h2>Sedes</h2>
+    <button id="btnListSedes">Listar sedes</button>
+    <pre id="out"></pre>
+  </div>
+
+<script>
+const API_BASE = "http://localhost:8080";
+let token = null;
+
+document.getElementById("btnLogin").onclick = async () => {
+  const username = document.getElementById("u").value;
+  const password = document.getElementById("p").value;
+
+  const res = await fetch(API_BASE + "/api/auth/login", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({username, password})
+  });
+
+  const data = await res.json();
+  if(!res.ok){
+    document.getElementById("status").textContent = "Error: " + (data?.message || res.status);
+    return;
+  }
+  token = data.token;
+  document.getElementById("status").textContent = "OK. Rol: " + data.role;
+};
+
+document.getElementById("btnListSedes").onclick = async () => {
+  if(!token){ alert("Primero haz login"); return; }
+  const res = await fetch(API_BASE + "/api/sedes", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const data = await res.json();
+  document.getElementById("out").textContent = JSON.stringify(data, null, 2);
+};
+</script>
+</body>
+</html>
